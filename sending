@@ -1,0 +1,49 @@
+#include <SPI.h>
+#include <LoRa.h>
+
+#define ss 5
+#define rst 14
+#define dio0 2
+
+#define BAND 433E6  // Adjust the frequency band as needed
+int counter = 0;
+
+void startLoRA() {
+  LoRa.setPins(ss, rst, dio0);
+
+  while (!LoRa.begin(BAND) && counter < 10) {
+    Serial.print(".");
+    counter++;
+    delay(500);
+  }
+
+  if (counter == 10) {
+    Serial.println("Starting LoRa failed!");
+  } else {
+    Serial.println("LoRa Initialization OK!");
+  }
+
+  delay(800);
+}
+
+void sendHello() {
+  int count = counter;
+  String msg = "hello";
+  String LoRaMessage = String(msg) + String(count);
+
+  LoRa.beginPacket();
+  LoRa.print(LoRaMessage);
+  LoRa.endPacket();
+  counter++;
+  Serial.println("Sending packet: hello");
+}
+
+void setup() {
+  Serial.begin(9600);
+  startLoRA();
+}
+
+void loop() {
+  sendHello();
+  delay(500);  // Adjust the delay based on your requirements
+}
