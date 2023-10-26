@@ -4,43 +4,32 @@
 #define ss 5
 #define rst 14
 #define dio0 2
-
 #define BAND 433E6  // Adjust the frequency band as needed
-
-void startLoRA() {
-  LoRa.setPins(ss, rst, dio0);
-
-  int counter = 0;
-  while (!LoRa.begin(BAND) && counter < 10) {
-    Serial.print(".");
-    counter++;
-    delay(500);
-  }
-
-  if (counter == 10) {
-    Serial.println("Starting LoRa failed!");
-  } else {
-    Serial.println("LoRa Initialization OK!");
-  }
-
-  delay(800);
-}
-
-void receiveData() {
-  if (LoRa.parsePacket()) {
-    Serial.println("Receiving packet...");
-    while (LoRa.available()) {
-      String receivedMessage = LoRa.readString();
-      Serial.println("Received: " + receivedMessage);
-    }
-  }
-}
 
 void setup() {
   Serial.begin(9600);
-  startLoRA();
+  while (!Serial);
+
+  LoRa.setPins(ss, rst, dio0);
+
+  if (!LoRa.begin(BAND)) {
+    Serial.println("LoRa initialization failed.");
+    while (1);
+  }
+
+  Serial.println("LoRa initialization successful.");
 }
 
 void loop() {
-  receiveData();
+  int packetSize = LoRa.parsePacket();
+
+  if (packetSize) {
+    Serial.print("Received packet: ");
+    
+    while (LoRa.available()) {
+      Serial.print((char)LoRa.read());
+    }
+
+    Serial.println();
+  }
 }
