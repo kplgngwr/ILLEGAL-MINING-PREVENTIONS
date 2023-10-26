@@ -1,14 +1,20 @@
 #include <SPI.h>
 #include <LoRa.h>
+#include <TinyGPS++.h>
 
+// LoRa configuration
 #define ss 5
 #define rst 14
 #define dio0 2
-
 #define BAND 433E6  // Adjust the frequency band as needed
+
+// GPS configuration
+TinyGPSPlus gps;
+HardwareSerial GPSSerial(2); // Use UART2 (pins 16 and 17) for GPS communication
+
 int counter = 0;
 
-void startLoRA() {
+void startLoRa() {
   LoRa.setPins(ss, rst, dio0);
 
   while (!LoRa.begin(BAND) && counter < 10) {
@@ -26,24 +32,33 @@ void startLoRA() {
   delay(800);
 }
 
-void sendHello() {
-  int count = counter;
-  String msg = "hello";
-  String LoRaMessage = String(msg) + String(count);
-
-  LoRa.beginPacket();
-  LoRa.print(LoRaMessage);
-  LoRa.endPacket();
-  counter++;
-  Serial.println("Sending packet: hello");
+void sendGPSData() {
+  if (GPSSerial.available() > 0) {
+    while (GPSSerial.available() > 0) {
+      if (gps.encode(GPSSerial.read())) {
+        LoRa.beginPacket();
+        LoRa.print("Location: Lat: ");
+        LoRa.print(gps.location.lat(), 6); // Latitude to 6 decimal places
+        LoRa.print(" Long: ");
+        LoRa.print(gps.location.lng(), 6); // Longitude to 6 decimal places
+        LoRa.print(" Speed: ");
+        LoRa.print(gps.speed.kmph(), 2); // Speed in km/h to 2 decimal places
+        LoRa.print(" Satellites: ");
+        LoRa.print(gps.satellites.value());
+        LoRa.endPacket();
+      }
+    }
+  }
 }
 
 void setup() {
   Serial.begin(9600);
-  startLoRA();
+  startLoRa();
+  GPSSerial.begin(9600); // Initialize the GPS module's serial communication
+  Serial.println("LoRa and GPS Initialization OK!");
 }
 
 void loop() {
-  sendHello();
-  delay(500);  // Adjust the delay based on your requirements
+  sendGPSData();
+  delay(10000);  // Adjust the delay based on your requirements
 }
