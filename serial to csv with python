@@ -1,0 +1,32 @@
+import serial
+import csv
+
+# Replace 'COM3' with the appropriate serial port of your Arduino
+ser = serial.Serial('COM3', 9600)
+
+# Create a CSV file for data storage
+csv_file = open('arduino_data.csv', 'w', newline='')
+csv_writer = csv.writer(csv_file)
+
+# Write a header row to the CSV file
+csv_writer.writerow(['Temperature', 'Humidity'])
+
+try:
+    while True:
+        # Read data from the serial port and decode it as ASCII
+        data = ser.readline().decode('ascii', errors='ignore').strip()
+        if data:
+            # Split data into values using the comma as the delimiter
+            values = data.split(',')
+            if len(values) == 2:
+                temperature, humidity = map(float, values)
+                # Write the data to the CSV file
+                csv_writer.writerow([temperature, humidity])
+                print(f"Temperature: {temperature}°C, Humidity: {humidity}%")
+
+except KeyboardInterrupt:
+    print("Data collection stopped.")
+
+# Close the serial connection and the CSV file
+ser.close()
+csv_file.close()
