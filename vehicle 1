@@ -1,0 +1,80 @@
+#include <SPI.h>
+#include <LoRa.h>
+#include <TinyGPS++.h>
+
+#define ss 5
+#define rst 14
+#define dio0 2
+#define BAND 433E6  // Adjust the frequency band as needed
+
+TinyGPSPlus gps;
+HardwareSerial GPSSerial(2); // Use UART2 (pins 16 and 17) for GPS communication
+
+int counter = 0;
+
+void startLoRa() {
+  LoRa.setPins(ss, rst, dio0);
+  while (!LoRa.begin(BAND) && counter < 10) {
+    Serial.print(".");
+    counter++;
+    delay(500);
+  }
+
+  if (counter == 10) {
+    Serial.println("Starting LoRa failed!");
+  } else {
+    Serial.println("LoRa Initialization OK!");
+  }
+
+  delay(800);
+}
+
+String GPSData()
+{
+  if (GPSSerial.available() > 0) {
+    if (gps.encode(GPSSerial.read())) {
+    String GPSData = String(gps.location.lat(), 6) + "," + String(gps.location.lng(), 6) + "," + String(gps.speed.kmph(), 2) + "," + String(gps.satellites.value());
+    return GPSData;}
+  }
+}
+
+void sendData() {
+  String GPSdata = GPSData();
+  String ID = "UP22XY0002";
+  String message = String(ID) +","+ String(GPSdata);
+  LoRa.beginPacket();
+  LoRa.print(message); 
+  LoRa.endPacket();
+}
+void receivedData(){
+  unsigned long startTime = millis(); // Record the start time
+  while (millis() - startTime < 1000) { // Check for received messages for 1 second
+    int packetSize = LoRa.parsePacket();
+    if (packetSize) {
+      String receivedMessage = "";
+      while (LoRa.available()) {
+        receivedMessage += (char)LoRa.read();
+      }
+      Serial.println("Received packet: " + receivedMessage);
+      
+      if (receivedMessage == "UP22XY0002,0.000000,0.000000,0.00,0") {
+        Serial.println("YOU ARE OUTSIDE PERMITTED AREA");
+      }
+
+      return; // If a message is received, exit the function
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+  startLoRa();
+  GPSSerial.begin(9600); // Initialize the GPS module's serial communication
+  Serial.println("LoRa and GPS Initialization OK!");
+}
+
+void loop() {
+  receivedData();
+  sendData();
+  delay(1000);  // Adjust the delay based on your requirements
+}
