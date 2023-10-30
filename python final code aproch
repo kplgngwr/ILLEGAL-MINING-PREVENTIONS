@@ -1,0 +1,74 @@
+import serial
+
+# Replace 'COM3' with the appropriate serial port of your ESP32
+ser = serial.Serial('COM3', 9600, timeout=2)
+
+# Initialize variables for storing data for each vehicle
+vehicle1_data = {"vehicle_id": "", "gps_lat": 0.0, "gps_long": 0.0, "speed": 0.0, "setelite": 0}
+vehicle2_data = {"vehicle_id": "", "gps_lat": 0.0, "gps_long": 0.0, "speed": 0.0, "setelite": 0}
+
+while True:
+    data = ser.readline().decode('utf-8', errors='ignore').strip()
+    if data:
+        # Split the received data by comma
+        parts = data.split(',')
+        if len(parts) == 5:
+            vehicle_id, gps_lat, gps_long, speed, setelite = parts
+
+            # Convert relevant parts to appropriate data types
+            gps_lat = float(gps_lat)
+            gps_long = float(gps_long)
+            speed = float(speed)
+            setelite = int(setelite)  # Assuming it's an integer
+
+            # Organize the data based on the vehicle ID suffix
+            if vehicle_id.endswith("1"):
+                vehicle1_data["vehicle_id"] = vehicle_id
+                vehicle1_data["gps_lat"] = gps_lat
+                vehicle1_data["gps_long"] = gps_long
+                vehicle1_data["speed"] = speedk
+                vehicle1_data["setelite"] = setelite
+                 # update operation (update existing value)
+                db.reference("/").update({"UP22XY0001/gps_lat": vehicle1_data["gps_lat"]})
+                db.reference("/").update({"UP22XY0001/gps_long": vehicle1_data["gps_long"]})
+                db.reference("/").update({"UP22XY0001/speed": vehicle1_data["speed"]})
+                db.reference("/").update({"UP22XY0001/setelite": vehicle1_data["setelite"]})
+            elif vehicle_id.endswith("2"):
+                vehicle2_data["vehicle_id"] = vehicle_id
+                vehicle2_data["gps_lat"] = gps_lat
+                vehicle2_data["gps_long"] = gps_long
+                vehicle2_data["speed"] = speed
+                vehicle2_data["setelite"] = setelite
+                # update operation (update existing value)
+                db.reference("/").update({"UP22XY0002/gps_lat": vehicle2_data["gps_lat"]})
+                db.reference("/").update({"UP22XY0002/gps_long": vehicle2_data["gps_long"]})
+                db.reference("/").update({"UP22XY0002/speed": vehicle2_data["speed"]})
+                db.reference("/").update({"UP22XY0002/setelite": vehicle2_data["setelite"]})
+
+            # Now you can access the data for each vehicle using the separate variables
+            if vehicle1_data["vehicle_id"]:
+                print("Vehicle 1 Data:")
+                print(vehicle1_data)
+            if vehicle2_data["vehicle_id"]:
+                print("Vehicle 2 Data:")
+                print(vehicle2_data)
+
+def write_serial():
+    while True:
+        message = input("Enter a message to send to ESP32: ")
+        ser.write(message.encode() + b'\n')
+
+try:
+    read_thread = threading.Thread(target=read_serial)
+    write_thread = threading.Thread(target=write_serial)
+    read_thread.start()
+    write_thread.start()
+
+    read_thread.join()
+    write_thread.join()
+
+except KeyboardInterrupt:
+    print("Serial communication stopped.")
+
+# Close the serial connection
+ser.close()
