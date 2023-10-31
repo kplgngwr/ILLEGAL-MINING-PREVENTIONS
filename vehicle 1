@@ -6,9 +6,9 @@
 #define rst 14
 #define dio0 2
 #define BAND 433E6  // Adjust the frequency band as needed
-
+#define led1 32
 TinyGPSPlus gps;
-HardwareSerial GPSSerial(2); // Use UART2 (pins 16 and 17) for GPS communication
+HardwareSerial GPSSerial(2);  // Use UART2 (pins 16 and 17) for GPS communication
 
 int counter = 0;
 
@@ -19,49 +19,55 @@ void startLoRa() {
     counter++;
     delay(500);
   }
-
   if (counter == 10) {
     Serial.println("Starting LoRa failed!");
   } else {
     Serial.println("LoRa Initialization OK!");
   }
-
   delay(800);
 }
 
-String GPSData()
-{
+String GPSData() {
   if (GPSSerial.available() > 0) {
-    if (gps.encode(GPSSerial.read())) {
-    String GPSData = String(gps.location.lat(), 6) + "," + String(gps.location.lng(), 6) + "," + String(gps.speed.kmph(), 2) + "," + String(gps.satellites.value());
-    return GPSData;}
+    while (GPSSerial.available() > 0) {
+      if (gps.encode(GPSSerial.read())) {
+        String GPSData = String(gps.location.lat(), 6) + "," + String(gps.location.lng(), 6) + "," + String(gps.speed.kmph(), 2) + "," + String(gps.satellites.value());
+        return GPSData;
+      }
+    }
   }
 }
 
 void sendData() {
   String GPSdata = GPSData();
   String ID = "UP22XY0002";
-  String message = String(ID) +","+ String(GPSdata);
+  String message = String(ID) + "," + String(GPSdata);
   LoRa.beginPacket();
-  LoRa.print(message); 
+  LoRa.print(message);
   LoRa.endPacket();
 }
-void receivedData(){
-  unsigned long startTime = millis(); // Record the start time
-  while (millis() - startTime < 1000) { // Check for received messages for 1 second
+void receivedData() {
+  unsigned long startTime = millis();    // Record the start time
+  while (millis() - startTime < 1000) {  // Check for received messages for 1 second
     int packetSize = LoRa.parsePacket();
     if (packetSize) {
       String receivedMessage = "";
       while (LoRa.available()) {
         receivedMessage += (char)LoRa.read();
       }
-      Serial.println("Received packet: " + receivedMessage);
-      
-      if (receivedMessage == "UP22XY0002,0.000000,0.000000,0.00,0") {
-        Serial.println("YOU ARE OUTSIDE PERMITTED AREA");
-      }
+      Serial.println("Received Data: " + receivedMessage);
 
-      return; // If a message is received, exit the function
+      if (receivedMessage == "UP22XY0001,0.000000,0.000000,0.00,0") {
+        digitalWrite(led1, HIGH);
+        delay(500);
+        digitalWrite(led1, LOW);
+      }
+      // else if (receivedMessage == "OUTSIDE") {
+      //   digitalWrite(led1, HIGH);
+      //   delay(500);
+      //   digitalWrite(led1, LOW);
+      // }
+      return;  // If a message is received, exit the function
     }
   }
 }
@@ -69,8 +75,10 @@ void receivedData(){
 void setup() {
   Serial.begin(9600);
   startLoRa();
-  GPSSerial.begin(9600); // Initialize the GPS module's serial communication
-  Serial.println("LoRa and GPS Initialization OK!");
+  GPSSerial.begin(9600);  // Initialize the GPS module's serial communication
+  pinMode(led1, OUTPUT);
+
+  Serial.println("LoRa, GPS, and LED Initialization OK!");
 }
 
 void loop() {
