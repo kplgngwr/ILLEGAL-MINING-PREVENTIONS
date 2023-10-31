@@ -5,31 +5,64 @@
 #define rst 14
 #define dio0 2
 #define BAND 433E6  // Adjust the frequency band as needed
+int counter = 0;
+
+void startLoRa() {
+  LoRa.setPins(ss, rst, dio0);
+  while (!LoRa.begin(BAND) && counter < 10) {
+    Serial.print(".");
+    counter++;
+    delay(500);
+  }
+  if (counter == 10) {
+    Serial.println("Starting LoRa failed!");
+  } else {
+    Serial.println("LoRa Initialization OK!");
+  }
+  delay(800);
+}
+
+void sendData() {
+  String ID = "UP22XY0002";
+  String message = String(ID) ;
+  LoRa.beginPacket();
+  LoRa.print(message);
+  LoRa.endPacket();
+}
+void receivedData() {  
+    int packetSize = LoRa.parsePacket();
+    if (packetSize) {
+      String receivedMessage = "";
+      while (LoRa.available()) {
+        receivedMessage += (char)LoRa.read();
+      }
+      Serial.println("Received Data: " + receivedMessage);
+
+      if (receivedMessage.indexOf("UP22XY0001,") != -1) {
+        digitalWrite(33, HIGH);
+        digitalWrite(25, HIGH);
+        delay(500);
+        digitalWrite(33, LOW);
+        digitalWrite(25, LOW);
+      }
+      // else if (receivedMessage == "OUTSIDE") {
+      //   digitalWrite(led1, HIGH);
+      //   delay(500);
+      //   digitalWrite(led1, LOW);
+      // }
+      return;  // If a message is received, exit the function
+  }
+}
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial);
+  startLoRa();
+  pinMode(33, OUTPUT);
+  pinMode(25, OUTPUT);
 
-  LoRa.setPins(ss, rst, dio0);
-
-  if (!LoRa.begin(BAND)) {
-    Serial.println("LoRa initialization failed.");
-    while (1);
-  }
-
-  Serial.println("LoRa initialization successful.");
+  Serial.println("LoRa, GPS, and LED Initialization OK!");
 }
 
 void loop() {
-  int packetSize = LoRa.parsePacket();
-
-  if (packetSize) {
-    Serial.print("Received packet: ");
-    
-    while (LoRa.available()) {
-      Serial.print((char)LoRa.read());
-    }
-
-    Serial.println();
-  }
+  receivedData();  
 }
