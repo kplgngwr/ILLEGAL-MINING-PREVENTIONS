@@ -57,17 +57,12 @@ void receivedData() {
       }
       Serial.println("Received Data: " + receivedMessage);
 
-      if (receivedMessage == "UP22XY0001,0.000000,0.000000,0.00,0") {
+      if (receivedMessage.indexOf("UP22XY0001,") != -1) {
         digitalWrite(led1, HIGH);
         delay(500);
         digitalWrite(led1, LOW);
       }
-      // else if (receivedMessage == "OUTSIDE") {
-      //   digitalWrite(led1, HIGH);
-      //   delay(500);
-      //   digitalWrite(led1, LOW);
-      // }
-      return;  // If a message is received, exit the function
+      return;  
     }
   }
 }
