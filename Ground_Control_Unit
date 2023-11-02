@@ -6,6 +6,17 @@
 #define dio0 2
 #define BAND 433E6  // Adjust the frequency band as needed
 int counter = 0;
+unsigned long previousMillis = 0;
+const long interval = 200;  // Blink interval in milliseconds
+
+void setup() {
+  Serial.begin(9600);
+  startLoRa();
+  pinMode(33, OUTPUT);
+  pinMode(25, OUTPUT);
+
+  Serial.println("LoRa, GPS, and LED Initialization OK!");
+}
 
 void startLoRa() {
   LoRa.setPins(ss, rst, dio0);
@@ -22,23 +33,6 @@ void startLoRa() {
   delay(800);
 }
 
-void setup() {
-  Serial.begin(9600);
-  startLoRa();
-  pinMode(33, OUTPUT);
-  pinMode(25, OUTPUT);
-
-  Serial.println("LoRa, GPS, and LED Initialization OK!");
-}
-
-void sendData() {
-  String ID = "UP22XY0002";
-  String message = String(ID);
-  LoRa.beginPacket();
-  LoRa.print(message);
-  LoRa.endPacket();
-}
-
 void receivedData() {
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
@@ -49,15 +43,25 @@ void receivedData() {
     Serial.println("Received Data: " + receivedMessage);
 
     if (receivedMessage.indexOf("UP22XY0001,") != -1) {
-      digitalWrite(33, HIGH);
-      delay(500);
-      digitalWrite(33, LOW);
+      blinkLED(33);
     } else if (receivedMessage.indexOf("UP22XY0002,") != -1) {
-      digitalWrite(25, HIGH);
-      delay(500);
-      digitalWrite(25, LOW);
+      blinkLED(25);
     }
     return;
+  }
+}
+
+void blinkLED(int pin) {
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+
+    if (digitalRead(pin) == LOW) {
+      digitalWrite(pin, HIGH);
+    } else {
+      digitalWrite(pin, LOW);
+    }
   }
 }
 
@@ -65,11 +69,15 @@ void ReadSerialData() {
   {
     if (Serial.available() > 0) {
       String command = Serial.readString();
-      LoRa.beginPacket();
-      LoRa.print(command);
-      LoRa.endPacket();
+      sendData(command);
     }
   }
+}
+
+void sendData(String message) {
+  LoRa.beginPacket();
+  LoRa.print(message);
+  LoRa.endPacket();
 }
 
 void loop() {
