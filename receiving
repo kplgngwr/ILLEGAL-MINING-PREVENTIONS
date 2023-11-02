@@ -7,6 +7,15 @@
 #define BAND 433E6  // Adjust the frequency band as needed
 int counter = 0;
 
+void setup() {
+  Serial.begin(9600);
+  startLoRa();
+  pinMode(33, OUTPUT);
+  pinMode(25, OUTPUT);
+
+  Serial.println("LoRa, GPS, and LED Initialization OK!");
+}
+
 void startLoRa() {
   LoRa.setPins(ss, rst, dio0);
   while (!LoRa.begin(BAND) && counter < 10) {
@@ -22,13 +31,6 @@ void startLoRa() {
   delay(800);
 }
 
-void sendData() {
-  String ID = "UP22XY0002";
-  String message = String(ID) ;
-  LoRa.beginPacket();
-  LoRa.print(message);
-  LoRa.endPacket();
-}
 void receivedData() {  
     int packetSize = LoRa.parsePacket();
     if (packetSize) {
@@ -50,15 +52,6 @@ void receivedData() {
       }
       return;  
   }
-}
-
-void setup() {
-  Serial.begin(9600);
-  startLoRa();
-  pinMode(33, OUTPUT);
-  pinMode(25, OUTPUT);
-
-  Serial.println("LoRa, GPS, and LED Initialization OK!");
 }
 
 void loop() {
