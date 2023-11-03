@@ -1,0 +1,99 @@
+#include <SPI.h>
+#include <LoRa.h>
+#include <TinyGPS++.h>
+
+#define ss 5
+#define rst 14
+#define dio0 2
+#define BAND 433E6  // Adjust the frequency band as needed
+bool led1State = false;
+
+TinyGPSPlus gps;
+HardwareSerial GPSSerial(2);  // Use UART2 (pins 16 and 17) for GPS communication
+
+int counter = 0;
+
+void setup() {
+  Serial.begin(9600);
+  startLoRa();
+  GPSSerial.begin(9600);  // Initialize the GPS module's serial communication
+  pinMode(32, OUTPUT);
+  pinMode(33, OUTPUT);
+
+  Serial.println("LoRa, GPS, and LED Initialization OK!");
+}
+
+void startLoRa() {
+  LoRa.setPins(ss, rst, dio0);
+  while (!LoRa.begin(BAND) && counter < 10) {
+    Serial.print(".");
+    counter++;
+    delay(500);
+  }
+  if (counter == 10) {
+    Serial.println("Starting LoRa failed!");
+  } else {
+    Serial.println("LoRa Initialization OK!");
+  }
+  delay(800);
+}
+
+void sendData() {
+  String GPSdata = GPSData();
+  String ID = "UP22XY0002";
+  String message = String(ID) + "," + String(GPSdata);
+  LoRa.beginPacket();
+  LoRa.print(message);
+  LoRa.endPacket();
+}
+
+String GPSData() {
+  if (GPSSerial.available() > 0) {
+    while (GPSSerial.available() > 0) {
+      if (gps.encode(GPSSerial.read())) {
+        String GPSData = String(gps.location.lat(), 6) + "," + String(gps.location.lng(), 6) + "," + String(gps.speed.kmph(), 2) + "," + String(gps.satellites.value());
+        return GPSData;
+      }
+    }
+  }
+}
+
+void receivedData() {
+  unsigned long startTime = millis();    // Record the start time
+  while (millis() - startTime < 1000) {  // Check for received messages for 1 second
+    int packetSize = LoRa.parsePacket();
+    if (packetSize) {
+      String receivedMessage = "";
+      while (LoRa.available()) {
+        receivedMessage += (char)LoRa.read();
+      }
+      Serial.println(receivedMessage);
+
+      if (receivedMessage.indexOf("UP22XY0002on") != -1) {
+        digitalWrite(32, HIGH);
+        led1State = true;
+      }
+      if (receivedMessage.indexOf("UP22XY0002off") != -1) {
+        digitalWrite(32, LOW);
+        led1State = false;
+      }
+      if (receivedMessage.indexOf("UP22XY0002outside") != -1) {
+        blinkLED(33);
+      }
+      return;
+    }
+  }
+}
+
+void blinkLED(int pin) {
+  digitalWrite(pin, HIGH);
+  delay(200);
+  digitalWrite(pin, LOW);
+}
+
+
+void loop() {
+  receivedData();
+  sendData();
+  delay(500);  
+}
