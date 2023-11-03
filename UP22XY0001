@@ -6,11 +6,22 @@
 #define rst 14
 #define dio0 2
 #define BAND 433E6  // Adjust the frequency band as needed
-#define led1 32
+bool led1State = false;
+
 TinyGPSPlus gps;
 HardwareSerial GPSSerial(2);  // Use UART2 (pins 16 and 17) for GPS communication
 
 int counter = 0;
+
+void setup() {
+  Serial.begin(9600);
+  startLoRa();
+  GPSSerial.begin(9600);  // Initialize the GPS module's serial communication
+  pinMode(32, OUTPUT);
+  pinMode(33, OUTPUT);
+
+  Serial.println("LoRa, GPS, and LED Initialization OK!");
+}
 
 void startLoRa() {
   LoRa.setPins(ss, rst, dio0);
@@ -27,6 +38,15 @@ void startLoRa() {
   delay(800);
 }
 
+void sendData() {
+  String GPSdata = GPSData();
+  String ID = "UP22XY0001";
+  String message = String(ID) + "," + String(GPSdata);
+  LoRa.beginPacket();
+  LoRa.print(message);
+  LoRa.endPacket();
+}
+
 String GPSData() {
   if (GPSSerial.available() > 0) {
     while (GPSSerial.available() > 0) {
@@ -38,14 +58,6 @@ String GPSData() {
   }
 }
 
-void sendData() {
-  String GPSdata = GPSData();
-  String ID = "UP22XY0002";
-  String message = String(ID) + "," + String(GPSdata);
-  LoRa.beginPacket();
-  LoRa.print(message);
-  LoRa.endPacket();
-}
 void receivedData() {
   unsigned long startTime = millis();    // Record the start time
   while (millis() - startTime < 1000) {  // Check for received messages for 1 second
@@ -55,29 +67,33 @@ void receivedData() {
       while (LoRa.available()) {
         receivedMessage += (char)LoRa.read();
       }
-      Serial.println("Received Data: " + receivedMessage);
+      Serial.println(receivedMessage);
 
-      if (receivedMessage.indexOf("UP22XY0001,") != -1) {
-        digitalWrite(led1, HIGH);
-        delay(500);
-        digitalWrite(led1, LOW);
+      if (receivedMessage.indexOf("UP22XY0001on") != -1) {
+        digitalWrite(32, HIGH);
+        led1State = true;
       }
-      return;  
+      if (receivedMessage.indexOf("UP22XY0001off") != -1) {
+        digitalWrite(32, LOW);
+        led1State = false;
+      }
+      if (receivedMessage.indexOf("UP22XY0001outside") != -1) {
+        blinkLED(33);
+      }
+      return;
     }
   }
 }
 
-void setup() {
-  Serial.begin(9600);
-  startLoRa();
-  GPSSerial.begin(9600);  // Initialize the GPS module's serial communication
-  pinMode(led1, OUTPUT);
-
-  Serial.println("LoRa, GPS, and LED Initialization OK!");
+void blinkLED(int pin) {
+  digitalWrite(pin, HIGH);
+  delay(200);
+  digitalWrite(pin, LOW);
 }
+
 
 void loop() {
   receivedData();
   sendData();
-  delay(1000);  // Adjust the delay based on your requirements
+  delay(500);  
 }
