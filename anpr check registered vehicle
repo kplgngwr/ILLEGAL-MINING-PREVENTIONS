@@ -1,0 +1,36 @@
+import cv2
+import pytesseract
+import time
+
+registered_plates = ['75AX36412', '75AX36412', 'KL47H7222', '7422JJ64', 'KL10BA400', '1422JJ64']
+
+cap = cv2.VideoCapture(0)
+
+registered_count = 0
+non_registered_count = 0
+
+while True:
+    ret, frame = cap.read()
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    license_plate_text = pytesseract.image_to_string(gray)
+
+    if license_plate_text:
+        clean_text = ''.join(e for e in license_plate_text if e.isalnum())
+        if clean_text in registered_plates:
+            registered_count += 1
+            print(f'Registered Vehicle: {clean_text}')
+            time.sleep(2)  # Add a 2-second delay after printing registered vehicles
+        else:
+            non_registered_count += 1
+            print(f'Non-Registered Vehicle: {clean_text}')
+
+    cv2.imshow('License Plate Detection', frame)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+
+print(f'Total Registered Vehicles: {registered_count}')
+print(f'Total Non-Registered Vehicles: {non_registered_count}')
