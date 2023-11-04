@@ -12,7 +12,7 @@ TinyGPSPlus gps;
 HardwareSerial GPSSerial(2);  // Use UART2 (pins 16 and 17) for GPS communication
 
 int counter = 0;
-
+ 
 void setup() {
   Serial.begin(9600);
   startLoRa();
@@ -69,7 +69,10 @@ void receivedData() {
       }
       Serial.println(receivedMessage);
 
-      if (receivedMessage.indexOf("UP22XY0002on") != -1) {
+      if (receivedMessage.indexOf("UP22XY0002outside") != -1) {
+        blinkLED(33);
+      }
+      if (receivedMessage.indexOf("UP22XY0002on") != 1) {
         digitalWrite(32, HIGH);
         led1State = true;
       }
@@ -77,9 +80,7 @@ void receivedData() {
         digitalWrite(32, LOW);
         led1State = false;
       }
-      if (receivedMessage.indexOf("UP22XY0002outside") != -1) {
-        blinkLED(33);
-      }
+      
       return;
     }
   }
@@ -94,6 +95,5 @@ void blinkLED(int pin) {
 
 void loop() {
   receivedData();
-  sendData();
-  delay(500);  
+  sendData(); 
 }
