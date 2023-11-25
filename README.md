@@ -25,8 +25,7 @@ App for Admins in Mining
 ![Screenshot_20231125_183544](https://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/7b33862f-f0f3-49cc-91c2-9b1aa0eb9e5e)
 ![Screenshot_20231125_183552](h![S![Screenshot_20231125_183525](https://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/f321223e-f0e9-48cd-98c9-1f6389a0b264)![Uploading WhatsApp Image 2023-11-25 at 18.39.15_1f1e3681.jpg…]()
 
-creenshot_20231125_183525](https://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/e3cf720e-23d4-4a6e-89c5-3b4a11f3379e)
-ttps://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/4650dbe1-fabb-4977-aa5c-7231f9359daa)
-![Screenshot_20231125_183518](https://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/d0f9e027-4aa5-408f-aa41-140775071942)
-![Screenshot_20231125_183506](https://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/05f0eab7-1c2a-4927-ae06-d31d4fd13b73)
+![Screenshot_20231125_183518](h![Screenshot_20231125_183525](https://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/772d757a-ef3b-4542-8d04-281ac1d95372)
+![Screenshot_20231125![Uploading Screenshot_20231125_183525.jpg…]()
+_183506](https://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/05f0eab7-1c2a-4927-ae06-d31d4fd13b73)
 
