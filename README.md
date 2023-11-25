@@ -11,4 +11,6 @@ Counting Vehicles inside mining Area ( Ensuring No two Vehicles can Enter with S
 ![WhatsApp Image 2023-11-04 at 16 03 19_4de9a2e5](https://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/145294bf-9b76-4a12-be44-34920f90e17c)
 
 UI of App for Admins in Mining 
+
+
 ![WhatsApp Image 2023-11-04 at 16 25 28_f13c6653](https://github.com/kplgngwr/ILLEGAL-MINING-PREVENTIONS/assets/124797373/b73309fb-8e1b-403d-94c1-be6eaf9c6323)
